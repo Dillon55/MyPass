@@ -1,0 +1,40 @@
+
+
+<h1>Edit Group: {{ group.name }}</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    
+    <!-- Remove passwords from group -->
+    <h3>Remove Passwords</h3>
+    {% for password in group_passwords %}
+        <div>
+            <input type="checkbox" name="remove_passwords" value="{{ password.password_id }}">
+            {{ password.service_name }} ({{ password.password }})
+        </div>
+    {% endfor %}
+
+    <!-- Update password details -->
+    <h3>Update Passwords</h3>
+    {% for password in group_passwords %}
+        <div>
+            <h4>{{ password.service_name }}</h4>
+            <label for="new_service_name_{{ password.password_id }}">Service Name:</label>
+            <input type="text" name="new_service_name_{{ password.password_id }}" value="{{ password.service_name }}">
+            
+            <label for="new_password_{{ password.password_id }}">Password:</label>
+            <input type="text" name="new_password_{{ password.password_id }}" value="{{ password.password }}">
+        </div>
+    {% endfor %}
+
+    <!-- Add new passwords to group -->
+    <h3>Add Passwords to Group</h3>
+    {% for password in user_passwords %}
+        <div>
+            <input type="checkbox" name="add_passwords" value="{{ password.id }}">
+            {{ password.service_name }} ({{ password.password }})
+        </div>
+    {% endfor %}
+
+    <button type="submit">Save Changes</button>
+</form>

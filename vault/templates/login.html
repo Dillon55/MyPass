@@ -1,0 +1,8 @@
+<form method="POST">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'vault/login.css' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" name="next" value="{{ request.GET.next }}">
+    <button type="submit">Login</button>
+</form>

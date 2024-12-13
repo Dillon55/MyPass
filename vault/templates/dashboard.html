@@ -1,0 +1,80 @@
+<h2>Welcome, {{ username }}</h2>
+{% load static %}
+<link rel="stylesheet" href="{% static 'vault/dashboard.css' %}">
+
+<!-- Buttons to create new password and new group -->
+<div>
+    <a href="{% url 'add_password' %}">
+        <button>Add New Password</button>
+    </a>
+    <a href="{% url 'create_group' %}">
+        <button>Create New Group</button>
+    </a>
+</div>
+
+<h2>Saved Passwords</h2>
+<ul>
+    {% for password in passwords %}
+        <li>
+            {{ password.service_name }} - 
+            <span class="hidden-password" id="password-{{ forloop.counter }}">******</span>
+            <button onclick="showPassword('{{ password.password }}', 'password-{{ forloop.counter }}')">Show</button>
+        </li>
+    {% endfor %}
+</ul>
+
+<h2>Groups</h2>
+{% for group in groups %}
+    <div>
+        <h3>{{ group.name }}</h3>
+        <p>{{ group.description }}</p>
+        <ul>
+            {% for password in group.passwords %}
+                <li>
+                    {{ password.service_name }} - 
+                    <span class="hidden-password" id="group-password-{{ forloop.counter }}">******</span>
+                    <button onclick="showPassword('{{ password.password }}', 'group-password-{{ forloop.counter }}')">Show</button>
+                </li>
+            {% empty %}
+                <li>No passwords in this group yet.</li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'edit_group' group_id=group.group_id %}">Edit Group</a>
+    </div>
+{% endfor %}
+<a href="{% url 'logout' %}"> Logout</a>
+
+<script>
+    function showPassword(actualPassword, elementId) {
+        // Prompt the user to enter their account password
+        const enteredPassword = prompt("Enter your account password to view this password:");
+
+        if (!enteredPassword) {
+            alert("No password entered. Cannot show the password.");
+            return;
+        }
+
+        // Verify the entered account password via an AJAX request
+        fetch("{% url 'verify_account_password' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token for Django
+            },
+            body: JSON.stringify({ account_password: enteredPassword })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // If verified, reveal the password
+                document.getElementById(elementId).textContent = actualPassword;
+            } else {
+                alert("Incorrect account password. Cannot show the password.");
+            }
+        })
+        .catch(error => {
+            console.error("Error verifying account password:", error);
+            alert("An error occurred. Please try again.");
+        });
+    }
+</script>

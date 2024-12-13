@@ -1,0 +1,60 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    padding: 2rem;
+    text-align: center;
+}
+
+/* Heading and Text Styling */
+h1 {
+    font-size: 2.5rem;
+    color: #007bff; /* Accent color */
+    margin-bottom: 0.5rem; /* Reduce spacing below the heading */
+}
+
+p {
+    font-size: 1.2rem;
+    margin-bottom: 1rem; /* Reduce spacing below the paragraph */
+}
+
+/* List Styling */
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+ul li {
+    margin: 0.8rem 0; /* Increase vertical spacing between buttons */
+}
+
+ul li a {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    display: inline-block; /* Ensures proper spacing and alignment */
+}
+
+ul li a:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
