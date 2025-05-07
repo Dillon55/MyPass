@@ -1,3 +1,7 @@
+Docker is required to run this application
+if you do not have docker it can be installed here: https://www.docker.com/get-started/
+
+
 1) -make a .env file in the project directory
 
    - fill the file like this for example 
