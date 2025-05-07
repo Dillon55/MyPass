@@ -26,10 +26,24 @@ class LoginForm(forms.Form):
 class GroupForm(forms.Form):
         name = forms.CharField(max_length=100, label='Group Name')
 
+
 class PasswordForm(forms.Form):
-    service_name = forms.CharField(label="Service Name", max_length=100)
-    password = forms.CharField(label="Password", widget=forms.PasswordInput)
+    service_name = forms.CharField(max_length=100, label='Service Name')
+    username_name = forms.CharField(max_length=100, label='Username')
+    password = forms.CharField(widget=forms.PasswordInput, label='Password')
+    account_password = forms.CharField(
+        widget=forms.PasswordInput,
+        label='Your Account Password',
+        help_text='Enter your account password to securely encrypt this entry'
+    )
     
+class TwoFactorForm(forms.Form):
+    code = forms.CharField(
+        label='Verification Code',
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(attrs={'placeholder': 'Enter 6-digit code'})
+    )
 
     
 

@@ -1,40 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Group</title>
+    <link rel="stylesheet" href="{% static 'vault/edit_group.css' %}">
+    <script src="{% static 'vault/showPass.js' %}"></script>
+</head>
+<body>
 
+    <h1>Edit Group: {{ group.name }}</h1>
 
-<h1>Edit Group: {{ group.name }}</h1>
+    <form method="POST">
+        {% csrf_token %}
 
-<form method="POST">
-    {% csrf_token %}
-    
-    <!-- Remove passwords from group -->
-    <h3>Remove Passwords</h3>
-    {% for password in group_passwords %}
-        <div>
-            <input type="checkbox" name="remove_passwords" value="{{ password.password_id }}">
-            {{ password.service_name }} ({{ password.password }})
+        <!-- Remove passwords from group -->
+        <h3>Remove Passwords</h3>
+        <div class="password-list">
+            <div class="password-headers">
+                <span>✔</span>
+                <span>Service Name</span>
+                <span>Username</span>
+                <span>Password</span>
+                <span>Show</span>
+            </div>
+
+            {% for password in group_passwords %}
+            <div class="password-row">
+                <span><input type="checkbox" name="remove_passwords" value="{{ password.password_id }}"></span>
+                <span>{{ password.service_name }}</span>
+                <span>{{ password.username_name }}</span>
+                <span class="hidden-password" id="remove-password-{{ forloop.counter }}">******</span>
+                <span>
+                    <button type="button" onclick="showPassword('{{ password.password }}', 'remove-password-{{ forloop.counter }}')">Show</button>
+                </span>
+            </div>
+            {% endfor %}
         </div>
-    {% endfor %}
 
-    <!-- Update password details -->
-    <h3>Update Passwords</h3>
-    {% for password in group_passwords %}
-        <div>
-            <h4>{{ password.service_name }}</h4>
-            <label for="new_service_name_{{ password.password_id }}">Service Name:</label>
-            <input type="text" name="new_service_name_{{ password.password_id }}" value="{{ password.service_name }}">
-            
-            <label for="new_password_{{ password.password_id }}">Password:</label>
-            <input type="text" name="new_password_{{ password.password_id }}" value="{{ password.password }}">
+        <!-- Add new passwords to group -->
+        <h3>Add Passwords to Group</h3>
+        <div class="password-list">
+            <div class="password-headers">
+                <span>✔</span>
+                <span>Service Name</span>
+                <span>Username</span>
+                <span>Password</span>
+                <span>Show</span>
+            </div>
+
+            {% for password in user_passwords %}
+                {% if password.id not in group_password_ids %}
+                <div class="password-row">
+                    <span><input type="checkbox" name="add_passwords" value="{{ password.id }}"></span>
+                    <span>{{ password.service_name }}</span>
+                    <span>{{ password.username_name }}</span>
+                    <span class="hidden-password" id="add-password-{{ forloop.counter }}">******</span>
+                    <span>
+                        <button type="button" onclick="showPassword('{{ password.password }}', 'add-password-{{ forloop.counter }}')">Show</button>
+                    </span>
+                </div>
+                {% endif %}
+            {% endfor %}
         </div>
-    {% endfor %}
 
-    <!-- Add new passwords to group -->
-    <h3>Add Passwords to Group</h3>
-    {% for password in user_passwords %}
-        <div>
-            <input type="checkbox" name="add_passwords" value="{{ password.id }}">
-            {{ password.service_name }} ({{ password.password }})
+        <div class="form-buttons">
+            <button type="submit" class="submit-btn">Save Changes</button>
+            <a href="{% url 'dashboard' %}" class="cancel-btn">Cancel</a>
         </div>
-    {% endfor %}
+    </form>
 
-    <button type="submit">Save Changes</button>
-</form>
+</body>
+</html>

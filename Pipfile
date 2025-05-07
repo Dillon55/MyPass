@@ -6,6 +6,10 @@ name = "pypi"
 [packages]
 django = "*"
 pymongo = "*"
+python-dotenv = "*"
+bcrypt = "*"
+cryptography = "*"
+
 
 [dev-packages]
 

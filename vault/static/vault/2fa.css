@@ -1,0 +1,91 @@
+/* General page styling */
+body {
+    background: #f4f6f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+/* Centered card */
+.card {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    border: none;
+}
+
+/* Header styling */
+.card-header {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    background-color: #007bff !important;
+    color: white;
+}
+
+/* Footer cleanup */
+.card-footer {
+    background-color: transparent;
+    border-top: none;
+}
+
+/* Alert messages */
+.alert {
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+}
+
+/* Form elements */
+.form-group label {
+    font-weight: 600;
+}
+
+input[type="text"], input[type="number"], input[type="email"] {
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    width: 100%;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+    outline: none;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-weight: 500;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004a9f;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f1f1f1;
+}
+
+/* Icons */
+.btn i {
+    margin-right: 5px;
+}
+
+/* Cancel button styling */
+.card-footer button {
+    background: none;
+    border: none;
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.card-footer button:hover {
+    color: #0056b3;
+}

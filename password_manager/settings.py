@@ -11,7 +11,12 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+#from dotenv import load_dotenv
+from urllib.parse import quote_plus
 
+
+#load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -62,7 +67,7 @@ ROOT_URLCONF = 'password_manager.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "vault/templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -74,6 +79,18 @@ TEMPLATES = [
         },
     },
 ]
+
+
+
+  
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'dillonoconnor55@gmail.com'  
+EMAIL_HOST_PASSWORD = 'yere sboa kdra tjwa'  
+DEFAULT_FROM_EMAIL = 'Password Vault <dillonoconnor55mail.com@gmail.com>'  
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False  
 
 WSGI_APPLICATION = 'password_manager.wsgi.application'
 
@@ -88,9 +105,22 @@ DATABASES = {
     }
 }
 
-# MongoDB settings
-MONGO_DB_NAME = 'password_manager'  
-MONGO_URI = 'mongodb://localhost:27017'  
+
+
+# Safely encode username and password
+MONGO_USERNAME = quote_plus(os.environ.get("MONGO_USERNAME"))
+MONGO_PASSWORD = quote_plus(os.environ.get("MONGO_PASSWORD"))
+
+# Get other Mongo settings
+MONGO_DB_NAME = os.environ.get("MONGO_DB_NAME", "password_manager")
+MONGO_HOST = os.environ.get("MONGO_HOST", "mongo")
+MONGO_PORT = os.environ.get("MONGO_PORT", "27017")
+
+# Build the Mongo URI safely
+MONGO_URI = (
+    f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB_NAME}"
+    "?authSource=admin"
+)
 
 
 # Password validation

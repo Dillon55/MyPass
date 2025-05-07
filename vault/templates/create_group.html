@@ -1,14 +1,22 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html>
 <head>
     <title>Create Group</title>
+    <link rel="stylesheet" href="{% static 'vault/create_group.css' %}">
 </head>
 <body>
-    <h1>Create a New Group</h1>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Create Group</button>
-    </form>
+    <div class="container">
+        <h1>Create a New Group</h1>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="buttons">
+                <button type="submit" class="submit-btn">Create Group</button>
+                <a href="/dashboard" class="cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
 </body>
 </html>

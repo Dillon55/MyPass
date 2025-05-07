@@ -5,4 +5,8 @@
     {{ form.as_p }}
     <input type="hidden" name="next" value="{{ request.GET.next }}">
     <button type="submit">Login</button>
+    <small class="text-muted">
+        Dont have an account yet?
+        <a href="{% url 'register' %}">Register</a>
+    </small>
 </form>
