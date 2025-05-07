@@ -18,9 +18,10 @@ DJANGO_SETTINGS_MODULE=password_manager.settings
 
 
 2)
--docker-compose up -d mongo
--docker exec -it password_manager-mongo-1 mongosh
--use admin
+- docker-compose up -d mongo
+- docker-compose exec web python manage.py migrate
+- docker exec -it mypass-mongo-1 mongosh -u admin -p password --authenticationDatabase admin
+- use admin
 
 -the user and pwd fields can be changed here to whatever you want
 
