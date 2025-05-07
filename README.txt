@@ -5,7 +5,7 @@
 
 # MongoDB credentials
 MONGO_USERNAME=admin
-MONGO_PASSWORD=strongpassword
+MONGO_PASSWORD=password
 MONGO_DB=password_manager
 
 # Mongo URI format for Django (uses variables above)
@@ -31,3 +31,6 @@ roles: [ {role: "root", db: "admin" } ]
 
 the server should be running now 
 go to http://localhost:8000/ to access the site
+if you want to view the database in mongodb compass 
+use this connection string mongodb://admin:password@localhost:27017/password_manager?authSource=admin
+replace admin:password with what ever username and password you have chosen
