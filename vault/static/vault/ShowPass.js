@@ -6,22 +6,22 @@ function getCSRFToken() {
 }
 
 function showPassword(encryptedPassword, elementId) {
-    // Get the element that will display the password
+    //Get the element that will display the password
     const passwordElement = document.getElementById(elementId);
     
-    // Prompt for account password
+    //Prompt for account password
     const accountPassword = prompt("Enter your account password to view this password:");
     
-    // Validate input
+    //Validate input
     if (!accountPassword) {
         alert("No password entered. Cannot show the password.");
         return;
     }
     
-    // Visual indicator that decryption is in progress
+    //Visual indicator that decryption is in progress
     passwordElement.textContent = "Decrypting...";
     
-    // Send request to decrypt
+    //Send request to decrypt
     fetch("/decrypt_password/", {  
         method: 'POST',
         headers: {
@@ -36,10 +36,10 @@ function showPassword(encryptedPassword, elementId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Show the decrypted password
+            //Show the decrypted password
             passwordElement.textContent = data.decrypted_password;
             
-            // Create a "Copy" button
+            //Create a "Copy" button
             const copyButton = document.createElement('button');
             copyButton.textContent = 'Copy';
             copyButton.onclick = function() {
@@ -50,18 +50,18 @@ function showPassword(encryptedPassword, elementId) {
                     });
             };
             
-            // Add the copy button next to the password element
+            //Add the copy button next to the password element
             passwordElement.parentNode.insertBefore(copyButton, passwordElement.nextSibling);
             
-            // Hide the password after a timeout
+            //Hide the password after a timeout
             setTimeout(() => {
                 passwordElement.textContent = "******";
                 if (copyButton.parentNode) {
                     copyButton.parentNode.removeChild(copyButton);
                 }
-            }, 30000); // Hide after 30 seconds
+            }, 30000); //Hide after 30 seconds
         } else {
-            // Show error message
+            //Show error message
             passwordElement.textContent = "******";
             alert(data.error || "Failed to decrypt password. Check your account password.");
         }
@@ -176,7 +176,7 @@ function showPasswordEdit(encryptedPassword, inputId) {
     }
 
     passwordInput.value = "Decrypting...";
-    passwordInput.setAttribute("readonly", true); // Keep it locked during decryption
+    passwordInput.setAttribute("readonly", true); //Keep it locked during decryption
 
     fetch("/decrypt_password/", {  
         method: "POST",
@@ -193,31 +193,31 @@ function showPasswordEdit(encryptedPassword, inputId) {
     .then(data => {
         if (data.success) {
             passwordInput.value = data.decrypted_password;
-            passwordInput.removeAttribute("readonly"); // Allow editing
+            passwordInput.removeAttribute("readonly"); //Allow editing
             
-            // Add a class to highlight that the field is now editable
+            //Add a class to highlight that the field is now editable
             passwordInput.classList.add("editable");
             
-            // Optionally, add a visual indication that the password is now visible
+            //Optionally, add a visual indication that the password is now visible
             const indicator = document.createElement('span');
             indicator.textContent = " (Password visible - will be re-encrypted on save)";
             indicator.className = "password-visible-indicator";
             indicator.style.color = "green";
             indicator.style.fontSize = "0.8em";
             
-            // Remove any existing indicators first
+            //Remove any existing indicators first
             const existingIndicators = document.querySelectorAll('.password-visible-indicator');
             existingIndicators.forEach(el => el.remove());
             
-            // Add the new indicator after the password input
+            //Add the new indicator after the password input
             passwordInput.parentNode.insertBefore(indicator, passwordInput.nextSibling);
             
-            // Optional: Set a timeout to clear the password after some time
+            //Optional: Set a timeout to clear the password after some time
             setTimeout(() => {
                 if (document.contains(indicator)) {
                     indicator.remove();
                 }
-            }, 60000); // 60 seconds
+            }, 60000); //60 seconds
         } else {
             passwordInput.value = "******";
             alert(data.error || "Failed to decrypt password. Check your account password.");
@@ -243,12 +243,12 @@ function showPasswordEdit(encryptedPassword, inputId) {
 
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Find the password input field
+        //Find the password input field
         const passwordField = document.querySelector('input[name="password"]');
         
         if (!passwordField) return;
         
-        // Create styles
+        //Create styles
         const style = document.createElement('style');
         style.textContent = `
             #password-strength-container {
@@ -277,7 +277,7 @@ function showPasswordEdit(encryptedPassword, inputId) {
         `;
         document.head.appendChild(style);
         
-        // Create the password strength meter elements
+        //Create the password strength meter elements
         const strengthContainer = document.createElement('div');
         strengthContainer.id = 'password-strength-container';
         strengthContainer.innerHTML = `
@@ -287,20 +287,20 @@ function showPasswordEdit(encryptedPassword, inputId) {
             <p id="password-strength-text">Password strength: <span id="strength-value">None</span></p>
         `;
         
-        // Insert the strength meter right after the password field
+        //Insert the strength meter right after the password field
         passwordField.parentNode.insertBefore(strengthContainer, passwordField.nextSibling);
         
-        // Get references to inserted elements
+        //Get references to inserted elements
         const strengthBar = document.getElementById('password-strength-bar');
         const strengthText = document.getElementById('strength-value');
         
         passwordField.addEventListener('input', function() {
             const password = this.value;
             
-            // Calculate strength score
+            //Calculate strength score
             let score = calculatePasswordStrength(password);
             
-            // Update the visual indicator
+            //Update the visual indicator
             updateStrengthMeter(score);
         });
         
@@ -309,22 +309,22 @@ function showPasswordEdit(encryptedPassword, inputId) {
             
             let score = 0;
             
-            // Length check
+            //Length check
             if (password.length >= 8) score += 1;
             if (password.length >= 12) score += 1;
             
-            // Character variety checks
+            //Character variety checks
             if (/[A-Z]/.test(password)) score += 1;
             if (/[a-z]/.test(password)) score += 1;
             if (/[0-9]/.test(password)) score += 1;
             if (/[^A-Za-z0-9]/.test(password)) score += 1;
             
-            // Normalize score to 0-4 range
+            //Normalize score to 0-4 range
             return Math.min(4, Math.floor(score / 1.5));
         }
         
         function updateStrengthMeter(score) {
-            // Empty password
+            //Empty password
             if (passwordField.value.length === 0) {
                 strengthBar.style.width = '0%';
                 strengthBar.style.backgroundColor = '#eee';
@@ -332,31 +332,31 @@ function showPasswordEdit(encryptedPassword, inputId) {
                 return;
             }
             
-            // Set appropriate style based on score
+            //Set appropriate style based on score
             switch(score) {
                 case 0:
                     strengthBar.style.width = '20%';
-                    strengthBar.style.backgroundColor = '#ff4d4d'; // Red
+                    strengthBar.style.backgroundColor = '#ff4d4d'; //Red
                     strengthText.textContent = 'Very Weak';
                     break;
                 case 1:
                     strengthBar.style.width = '40%';
-                    strengthBar.style.backgroundColor = '#ffa64d'; // Orange
+                    strengthBar.style.backgroundColor = '#ffa64d'; //Orange
                     strengthText.textContent = 'Weak';
                     break;
                 case 2:
                     strengthBar.style.width = '60%';
-                    strengthBar.style.backgroundColor = '#ffff4d'; // Yellow
+                    strengthBar.style.backgroundColor = '#ffff4d'; //Yellow
                     strengthText.textContent = 'Medium';
                     break;
                 case 3:
                     strengthBar.style.width = '80%';
-                    strengthBar.style.backgroundColor = '#4dff4d'; // Green
+                    strengthBar.style.backgroundColor = '#4dff4d'; //Green
                     strengthText.textContent = 'Strong';
                     break;
                 case 4:
                     strengthBar.style.width = '100%';
-                    strengthBar.style.backgroundColor = '#4d4dff'; // Blue
+                    strengthBar.style.backgroundColor = '#4d4dff'; //Blue
                     strengthText.textContent = 'Very Strong';
                     break;
             }
@@ -371,7 +371,7 @@ function showPasswordEdit(encryptedPassword, inputId) {
 function searchPasswords() {
     console.log("Search function triggered");
     
-    // Get the search term and convert to lowercase
+    //Get the search term and convert to lowercase
     const searchInput = document.getElementById('searchInput');
     if (!searchInput) {
         console.error("Search input element not found");
@@ -381,30 +381,30 @@ function searchPasswords() {
     const searchTerm = searchInput.value.toLowerCase().trim();
     console.log("Searching for:", searchTerm);
     
-    // Get all standalone password boxes
+    //Get all standalone password boxes
     const standaloneBoxes = document.querySelectorAll('.password-box');
     
-    // Get all group boxes
+    //Get all group boxes
     const groupBoxes = document.querySelectorAll('.group-box');
     
-    // Get the no results message element
+    //Get the no results message element
     const noResults = document.getElementById('noResults');
     
     console.log("Found", standaloneBoxes.length, "standalone password boxes");
     console.log("Found", groupBoxes.length, "group boxes");
     
-    // Track if we found any matches
+    //Track if we found any matches
     let foundMatch = false;
     
-    // If search term is empty, show everything
+    //If search term is empty, show everything
     if (searchTerm === '') {
         clearSearch();
         return;
     }
     
-    // Process standalone password boxes
+    //Process standalone password boxes
     standaloneBoxes.forEach((box, index) => {
-        // Get the service name from the strong tag (first child)
+        //Get the service name from the strong tag (first child)
         const strongTag = box.querySelector('strong');
         const serviceName = strongTag ? strongTag.textContent.toLowerCase() : '';
         
@@ -419,16 +419,16 @@ function searchPasswords() {
         }
     });
     
-    // Process group boxes
+    //Process group boxes
     groupBoxes.forEach((group, groupIndex) => {
         const groupItems = group.querySelectorAll('li');
         let groupHasMatch = false;
         
         console.log(`Group ${groupIndex + 1} has ${groupItems.length} items`);
         
-        // Check each password in the group
+        //Check each password in the group
         groupItems.forEach((item, itemIndex) => {
-            // The service name is at the beginning of the text content before the dash
+            //The service name is at the beginning of the text content before the dash
             const itemText = item.textContent.trim();
             const serviceName = itemText.split('-')[0].trim().toLowerCase();
             
@@ -444,10 +444,10 @@ function searchPasswords() {
             }
         });
         
-        // Keep the group visible, regardless of matches
+        //Keep the group visible, regardless of matches
         group.style.display = 'block';
         
-        // Optional: Add a visual indicator if group has no visible items
+        //Optional: Add a visual indicator if group has no visible items
         if (!groupHasMatch && groupItems.length > 0) {
             group.classList.add('no-matches');
         } else {
@@ -457,7 +457,7 @@ function searchPasswords() {
     
     console.log("Overall match found:", foundMatch);
     
-    // Show/hide no results message if it exists
+    //Show/hide no results message if it exists
     if (noResults) {
         noResults.style.display = foundMatch ? 'none' : 'block';
     }
@@ -472,17 +472,17 @@ function clearSearch() {
     const searchInput = document.getElementById('searchInput');
     const noResults = document.getElementById('noResults');
     
-    // Clear search input
+    //Clear search input
     if (searchInput) {
         searchInput.value = '';
     }
     
-    // Hide "no results" message
+    //Hide "no results" message
     if (noResults) {
         noResults.style.display = 'none';
     }
     
-    // Reset standalone password boxes
+    //Reset standalone password boxes
     const passwordBoxes = document.querySelectorAll('.password-box');
     console.log("Found", passwordBoxes.length, "password boxes to reset");
     
@@ -490,7 +490,7 @@ function clearSearch() {
         box.style.display = 'block';
     });
     
-    // Reset group items
+    //Reset group items
     const groupItems = document.querySelectorAll('.group-box li');
     console.log("Found", groupItems.length, "group items to reset");
     
@@ -498,7 +498,7 @@ function clearSearch() {
         item.style.display = 'list-item';
     });
     
-    // Reset all groups and remove no-matches class
+    //Reset all groups and remove no-matches class
     const groups = document.querySelectorAll('.group-box');
     console.log("Found", groups.length, "groups to reset");
     
@@ -508,7 +508,7 @@ function clearSearch() {
     });
 }
 
-// Event listeners
+//Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM fully loaded, setting up search functionality");
     
@@ -516,10 +516,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput) {
         console.log("Search input found, adding event listeners");
         
-        // Add input event listener for real-time searching
+        //Add input event listener for real-time searching
         searchInput.addEventListener('input', searchPasswords);
         
-        // Clear any previous results
+        //Clear any previous results
         clearSearch();
     } else {
         console.error("Search input not found on page");
@@ -529,7 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function searchGroups() {
     console.log("Group search function triggered");
     
-    // Get the search term and convert to lowercase
+    //Get the search term and convert to lowercase
     const searchInput = document.getElementById('groupSearchInput');
     if (!searchInput) {
         console.error("Group search input element not found");
@@ -539,26 +539,26 @@ function searchGroups() {
     const searchTerm = searchInput.value.toLowerCase().trim();
     console.log("Searching for groups with:", searchTerm);
     
-    // Get all group boxes
+    //Get all group boxes
     const groupBoxes = document.querySelectorAll('.group-box');
     
-    // Get the no results message element
+    //Get the no results message element
     const noResults = document.getElementById('noGroupResults');
     
     console.log("Found", groupBoxes.length, "group boxes");
     
-    // Track if we found any matches
+    //Track if we found any matches
     let foundMatch = false;
     
-    // If search term is empty, show everything
+    //If search term is empty, show everything
     if (searchTerm === '') {
         clearGroupSearch();
         return;
     }
     
-    // Process group boxes
+    //Process group boxes
     groupBoxes.forEach((group, groupIndex) => {
-        // Get the group name from the h3 tag
+        //Get the group name from the h3 tag
         const h3Tag = group.querySelector('h3');
         const groupName = h3Tag ? h3Tag.textContent.toLowerCase() : '';
         
@@ -575,7 +575,7 @@ function searchGroups() {
     
     console.log("Overall match found:", foundMatch);
     
-    // Show/hide no results message if it exists
+    //Show/hide no results message if it exists
     if (noResults) {
         noResults.style.display = foundMatch ? 'none' : 'block';
     }
@@ -590,17 +590,17 @@ function clearGroupSearch() {
     const searchInput = document.getElementById('groupSearchInput');
     const noResults = document.getElementById('noGroupResults');
     
-    // Clear search input
+    //Clear search input
     if (searchInput) {
         searchInput.value = '';
     }
     
-    // Hide "no results" message
+    //Hide "no results" message
     if (noResults) {
         noResults.style.display = 'none';
     }
     
-    // Reset all groups
+    //Reset all groups
     const groups = document.querySelectorAll('.group-box');
     console.log("Found", groups.length, "groups to reset");
     
@@ -609,55 +609,55 @@ function clearGroupSearch() {
     });
 }
 
-// Add this to the existing DOMContentLoaded event listener
+//Add this to the existing DOMContentLoaded event listener
 document.addEventListener('DOMContentLoaded', function() {
-    // Existing code...
+    //Existing code...
     
-    // Add group search functionality
+    //Add group search functionality
     const groupSearchInput = document.getElementById('groupSearchInput');
     if (groupSearchInput) {
         console.log("Group search input found, adding event listeners");
         
-        // Add input event listener for real-time searching
+        //Add input event listener for real-time searching
         groupSearchInput.addEventListener('input', searchGroups);
         
-        // Clear any previous results
+        //Clear any previous results
         clearGroupSearch();
     } else {
         console.error("Group search input not found on page");
     }
 });
 
-// Toggle visibility of password section
+//Toggle visibility of password section
 function togglePasswordsVisibility() {
     const button = document.getElementById('togglePasswordsBtn');
-    // Find the heading that contains "Saved Passwords"
+    //Find the heading that contains "Saved Passwords"
     const passwordsHeading = Array.from(document.querySelectorAll('h2')).find(h2 => 
         h2.textContent.includes('Saved Passwords'));
     const passwordsContainer = document.querySelector('.passwords-container');
     const passwordsSearchContainer = document.querySelector('#searchInput').closest('.search-container');
     
-    // Check if currently visible
+    //Check if currently visible
     const isVisible = passwordsContainer.style.display !== 'none';
     
     if (isVisible) {
-        // Hide passwords
+        //Hide passwords
         if (passwordsHeading) passwordsHeading.style.display = 'none';
         passwordsContainer.style.display = 'none';
         passwordsSearchContainer.style.display = 'none';
         button.textContent = 'Show Passwords';
         button.classList.add('active');
     } else {
-        // Show passwords
+        //Show passwords
         if (passwordsHeading) passwordsHeading.style.display = 'block';
-        passwordsContainer.style.display = 'grid'; // Changed to grid as defined in CSS
+        passwordsContainer.style.display = 'grid'; //Changed to grid as defined in CSS
         passwordsSearchContainer.style.display = 'block';
         
-        // Reset any password boxes that might have stretched
+        //Reset any password boxes that might have stretched
         const passwordBoxes = document.querySelectorAll('.password-box');
         passwordBoxes.forEach(box => {
-            box.style.width = ''; // Reset to CSS default
-            box.style.maxWidth = ''; // Reset to CSS default
+            box.style.width = ''; //Reset to CSS default
+            box.style.maxWidth = ''; //Reset to CSS default
         });
         
         button.textContent = 'Hide Passwords';
@@ -665,36 +665,36 @@ function togglePasswordsVisibility() {
     }
 }
 
-// Toggle visibility of groups section
+//Toggle visibility of groups section
 function toggleGroupsVisibility() {
     const button = document.getElementById('toggleGroupsBtn');
-    // Find the heading that contains "Groups"
+    //Find the heading that contains "Groups"
     const groupsHeading = Array.from(document.querySelectorAll('h2')).find(h2 => 
         h2.textContent.includes('Groups'));
     const groupsContainer = document.querySelector('.groups-container');
     const groupsSearchContainer = document.querySelector('#groupSearchInput').closest('.search-container');
     
-    // Check if currently visible
+    //Check if currently visible
     const isVisible = groupsContainer.style.display !== 'none';
     
     if (isVisible) {
-        // Hide groups
+        //Hide groups
         if (groupsHeading) groupsHeading.style.display = 'none';
         groupsContainer.style.display = 'none';
         groupsSearchContainer.style.display = 'none';
         button.textContent = 'Show Groups';
         button.classList.add('active');
     } else {
-        // Show groups
+        //Show groups
         if (groupsHeading) groupsHeading.style.display = 'block';
-        groupsContainer.style.display = 'grid'; // Changed to grid as defined in CSS
+        groupsContainer.style.display = 'grid'; //Changed to grid as defined in CSS
         groupsSearchContainer.style.display = 'block';
         
-        // Reset any group boxes that might have stretched
+        //Reset any group boxes that might have stretched
         const groupBoxes = document.querySelectorAll('.group-box');
         groupBoxes.forEach(box => {
-            box.style.width = ''; // Reset to CSS default
-            box.style.maxWidth = ''; // Reset to CSS default
+            box.style.width = ''; //Reset to CSS default
+            box.style.maxWidth = ''; //Reset to CSS default
         });
         
         button.textContent = 'Hide Groups';

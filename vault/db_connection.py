@@ -1,18 +1,18 @@
 from pymongo import MongoClient
 from django.conf import settings
-#connection to mongodb 
+#Connection to mongodb 
 def get_database():
     
     client = MongoClient(settings.MONGO_URI)  #Use URI from settings
     return client[settings.MONGO_DB_NAME]  #Return the database from settings
 
-#connect to the users collection
+#Connect to the users collection
 def get_users_collection():
  
     db = get_database()
-    return db['users']  #return the users collection
+    return db['users']  #Return the users collection
 
-#connect to the passwords collection
+#Connect to the passwords collection
 def get_passwords_collection():
     
     

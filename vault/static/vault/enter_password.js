@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: "POST",
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'  // Mark as AJAX request
+                    'X-Requested-With': 'XMLHttpRequest'  
                 }
             });
 
@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const result = await response.json();
 
             if (!result.success) {
-                // Show popup for error
+                //Show popup for error
                 alert(result.error || "Incorrect password. Please try again.");
             } else {
-                // Success, show success popup and redirect
+                //Success, show success popup and redirect
                 alert(result.message || "Password updated successfully!");
-                window.location.href = "/dashboard"; // Redirect to dashboard
+                window.location.href = "/dashboard"; //Redirect to dashboard
             }
         } catch (error) {
             console.error('Error submitting form:', error);

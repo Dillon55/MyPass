@@ -13,7 +13,7 @@ from django.shortcuts import redirect, render
 from django.http import JsonResponse
 from django.contrib import messages
 import json
-from .models import VaultUser  # Ensure VaultUser handles password verification
+from .models import VaultUser  #Ensure VaultUser handles password verification
 import logging
 import secrets
 import string
@@ -31,7 +31,7 @@ def register(request):
         if form.is_valid():
             vault_user = VaultUser()
 
-            # Call the create_user method with the required arguments
+            #Call the create_user method with the required arguments
             result = vault_user.create_user(
                 username=form.cleaned_data['username'],
                 email=form.cleaned_data['email'],
@@ -51,7 +51,7 @@ def register(request):
 
 
 def login(request):
-    # Check if the user is in the 2FA verification phase
+    #Check if the user is in the 2FA verification phase
     if 'awaiting_2fa' in request.session:
         username = request.session.get('awaiting_2fa')
         
@@ -64,20 +64,20 @@ def login(request):
                 result = vault_user.verify_2fa_code(username, code)
                 
                 if result['success']:
-                    # 2FA verification successful, complete login
+                    #2FA verification successful, complete login
                     request.session.pop('awaiting_2fa', None)
                     request.session['username'] = username
                     return redirect('dashboard')
                 else:
-                    # Invalid or expired code
+                    #Invalid or expired code
                     form.add_error('code', result['error'])
         else:
-            # GET request for the 2FA verification page
+            #GET request for the 2FA verification page
             form = TwoFactorForm()
         
         return render(request, 'verify_2fa.html', {'form': form})
     
-    # Normal login flow
+    #Normal login flow
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -89,17 +89,17 @@ def login(request):
             if user:
                 username = user['username']
                 
-                # Send 2FA verification code to user's email
+                #Send 2FA verification code to user's email
                 result = vault_user.send_2fa_email(username)
                 if result['success']:
-                    # Store username in session and redirect to 2FA verification page
+                    #Store username in session and redirect to 2FA verification page
                     request.session['awaiting_2fa'] = username
-                    return redirect('verify_2fa')  # We'll create this URL
+                    return redirect('verify_2fa')  #We'll create this URL
                 else:
-                    # Failed to send email
+                    #Failed to send email
                     form.add_error(None, f"Failed to send verification code: {result.get('error', 'Unknown error')}")
             else:
-                # Invalid credentials
+                #Invalid credentials
                 if vault_user.get_user_by_username(form.cleaned_data['username']):
                     form.add_error('password', "Incorrect password.")
                 else:
@@ -124,10 +124,10 @@ def dashboard_view(request):
     groups = user.get('groups', [])
     passwords_collection = get_passwords_collection()
     
-    # Convert _id to string for each password
+    #Convert _id to string for each password
     user_passwords = []
     for password in passwords_collection.find({'username': username}):
-        # Convert _id to string and add as 'id'
+        #Convert _id to string and add as 'id'
         password['id'] = str(password['_id'])
         user_passwords.append(password)
     
@@ -136,7 +136,7 @@ def dashboard_view(request):
         for password_id in group.get('passwords', []):
             password = passwords_collection.find_one({'_id': password_id})
             if password:
-                # Convert _id to string and add as 'id'
+                #Convert _id to string and add as 'id'
                 password['id'] = str(password['_id'])
                 group_passwords.append(password)
         group['passwords'] = group_passwords
@@ -160,10 +160,10 @@ def add_password(request):
     if request.method == 'POST':
         form = PasswordForm(request.POST)
         if form.is_valid():
-            group_id = request.POST.get('group_id', None)  # Optional group selection
-            # Get the account password
+            group_id = request.POST.get('group_id', None) 
+            #Get the account password
             account_password = form.cleaned_data.get('account_password')
-            # Fetch the user's stored password
+            #Fetch the user's stored password
             users_collection = get_users_collection()
             user = users_collection.find_one({'username': request.session.get('username')})
          
@@ -175,7 +175,7 @@ def add_password(request):
                 service_name=form.cleaned_data['service_name'],
                 username_name=form.cleaned_data['username_name'],
                 password=form.cleaned_data['password'],
-                master_password=account_password,  # Pass account password for encryption
+                master_password=account_password,  #Pass account password for encryption
                 group_id=group_id
             )
 
@@ -211,7 +211,7 @@ def edit_password(request, password_id):
         messages.error(request, "Password not found or you don't have permission to edit it")
         return redirect('dashboard')
 
-    # Check if this is an AJAX request
+    #Check if this is an AJAX request
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if request.method == 'POST':
@@ -220,7 +220,7 @@ def edit_password(request, password_id):
         new_password = request.POST.get('password')
         account_password = request.POST.get('account_password')
 
-        # If changing the password (not just service name or username), require account password
+        #If changing the password (not just service name or username), require account password
         password_change = new_password and new_password != "******"
         
         if password_change and not account_password:
@@ -236,7 +236,7 @@ def edit_password(request, password_id):
 
         vault_user = VaultUser()
         
-        # If only updating service name or username (not password), skip password verification
+        #If only updating service name or username (not password), skip password verification
         if not password_change:
             update_data = {
                 'service_name': new_service_name,
@@ -248,17 +248,17 @@ def edit_password(request, password_id):
             )
             
             if is_ajax:
-                # For AJAX requests, return JSON
+                #For AJAX requests, return JSON
                 if result.modified_count > 0:
                     return JsonResponse({'success': True, 'message': 'Password details updated successfully.'})
                 else:
                     return JsonResponse({'success': True, 'message': 'No changes made.'})
             else:
-                # For regular form submissions, redirect to dashboard
+                #For regular form submissions, redirect to dashboard
                 messages.success(request, "Password details updated successfully.")
                 return redirect('dashboard')
         else:
-            # Password is changing, so verify account password
+            #Password is changing, so verify account password
             user = vault_user.get_user_by_username(username)
             if not user:
                 if is_ajax:
@@ -275,7 +275,7 @@ def edit_password(request, password_id):
                     messages.error(request, "Incorrect password.")
                     return redirect('dashboard')
 
-            # Update with the new password
+            #Update with the new password
             result = vault_user.edit_password(
                 username=username,
                 password_id=password_id,
@@ -326,14 +326,14 @@ def create_group(request):
 def delete_password(request):
     if request.method == 'POST':
         try:
-            # Parse the request body
+            #Parse the request body
             body = json.loads(request.body.decode('utf-8'))
             
-            # Extract required parameters
+            #Extract required parameters
             _id = body.get('_id')
             account_password = body.get('account_password')
             
-            # Comprehensive parameter validation
+            #Comprehensive parameter validation
             if not _id:
                 return JsonResponse({
                     'success': False, 
@@ -350,7 +350,7 @@ def delete_password(request):
                     'error': 'Account password is required.',
                 }, status=400)
             
-            # Check user session
+            #Check user session
             username = request.session.get('username')
             if not username:
                 return JsonResponse({
@@ -358,7 +358,7 @@ def delete_password(request):
                     'error': 'User not logged in.'
                 }, status=401)
             
-            # Verify user exists and account password is correct
+            #Verify user exists and account password is correct
             vault_user = VaultUser()
             user = vault_user.get_user_by_username(username)
             
@@ -368,7 +368,7 @@ def delete_password(request):
                     'error': 'User account not found.'
                 }, status=404)
             
-            # Verify account password
+            #Verify account password
             stored_password = user.get('password')
             if not bcrypt.checkpw(account_password.encode('utf-8'), stored_password):
                 return JsonResponse({
@@ -376,10 +376,10 @@ def delete_password(request):
                     'error': 'Incorrect account password.'
                 }, status=401)
             
-            # Attempt to delete the password
+            #Attempt to delete the password
             delete_result = vault_user.delete_password(username, _id)
             
-            # Handle delete result
+            #Handle delete result
             if delete_result['success']:
                 return JsonResponse({
                     'success': True, 
@@ -392,14 +392,14 @@ def delete_password(request):
                 }, status=400)
         
         except json.JSONDecodeError:
-            # Handle JSON parsing errors
+            #Handle JSON parsing errors
             return JsonResponse({
                 'success': False, 
                 'error': 'Invalid JSON in request body.'
             }, status=400)
         
         except Exception as e:
-            # Catch-all for unexpected errors
+            #Catch-all for unexpected errors
             logger.error(f"Unexpected error in delete_password: {e}")
             import traceback
             traceback.print_exc()
@@ -410,7 +410,7 @@ def delete_password(request):
                 'details': str(e)
             }, status=500)
     
-    # Handle non-POST requests
+    #Handle non-POST requests
     return JsonResponse({
         'success': False, 
         'error': 'Method not allowed.'
@@ -421,14 +421,14 @@ def delete_password(request):
 def delete_group(request):
     if request.method == 'POST':
         try:
-            # Parse the request body
+            #Parse the request body
             body = json.loads(request.body.decode('utf-8'))
             
-            # Extract required parameters
+            #Extract required parameters
             group_id = body.get('group_id')
             account_password = body.get('account_password')
             
-            # Validate parameters
+            #Validate parameters
             if not group_id:
                 return JsonResponse({
                     'success': False, 
@@ -441,7 +441,7 @@ def delete_group(request):
                     'error': 'Account password is required.'
                 }, status=400)
             
-            # Check user session
+            #Check user session
             username = request.session.get('username')
             if not username:
                 return JsonResponse({
@@ -449,7 +449,7 @@ def delete_group(request):
                     'error': 'User not logged in.'
                 }, status=401)
             
-            # Verify user exists and account password is correct
+            #Verify user exists and account password is correct
             vault_user = VaultUser()
             user = vault_user.get_user_by_username(username)
             
@@ -459,7 +459,7 @@ def delete_group(request):
                     'error': 'User account not found.'
                 }, status=404)
             
-            # Verify account password
+            #Verify account password
             stored_password = user.get('password')
             if not bcrypt.checkpw(account_password.encode('utf-8'), stored_password):
                 return JsonResponse({
@@ -467,10 +467,10 @@ def delete_group(request):
                     'error': 'Incorrect account password.'
                 }, status=401)
             
-            # Attempt to delete the group
+            #Attempt to delete the group
             delete_result = vault_user.delete_group(username, group_id)
             
-            # Handle delete result
+            #Handle delete result
             if delete_result['success']:
                 return JsonResponse({
                     'success': True, 
@@ -483,14 +483,14 @@ def delete_group(request):
                 }, status=400)
         
         except json.JSONDecodeError:
-            # Handle JSON parsing errors
+            #Handle JSON parsing errors
             return JsonResponse({
                 'success': False, 
                 'error': 'Invalid JSON in request body.'
             }, status=400)
         
         except Exception as e:
-            # Catch-all for unexpected errors
+            #Catch-all for unexpected errors
             logger.error(f"Unexpected error in delete_group: {e}")
             import traceback
             traceback.print_exc()
@@ -501,19 +501,19 @@ def delete_group(request):
                 'details': str(e)
             }, status=500)
     
-    # Handle non-POST requests
+    #Handle non-POST requests
     return JsonResponse({
         'success': False, 
         'error': 'Method not allowed.'
     }, status=405)
-@csrf_exempt  # Use only if necessary; better to rely on CSRF tokens
+@csrf_exempt  #Use only if necessary; better to rely on CSRF tokens
 def verify_account_password(request):
     if request.method == 'POST':
         try:
             body = json.loads(request.body.decode('utf-8'))
             account_password = body.get('account_password')
 
-            # Fetch the stored user password
+            #Fetch the stored user password
             username = request.session.get('username')
             if not username:
                 return JsonResponse({'success': False, 'error': 'User not logged in.'}, status=400)
@@ -522,24 +522,24 @@ def verify_account_password(request):
             if not user:
                 return JsonResponse({'success': False, 'error': 'User not found.'}, status=404)
 
-            stored_password = user['password']  # Hashed password (should already be bytes)
-            print(f"DEBUG: Stored Password Hash (Bytes): {stored_password}")  # Debug log
-            print(f"DEBUG: Entered Password (Raw): {account_password}")  # Debug log
+            stored_password = user['password']  #Hashed password (should already be bytes)
+            print(f"DEBUG: Stored Password Hash (Bytes): {stored_password}")  #Debug log
+            print(f"DEBUG: Entered Password (Raw): {account_password}")  #Debug log
 
-            # Ensure stored_password is in bytes format
+            #Ensure stored_password is in bytes format
             if isinstance(stored_password, str):  
-                stored_password = stored_password.encode('utf-8')  # Convert to bytes if it's a string
+                stored_password = stored_password.encode('utf-8')  #Convert to bytes if it's a string
 
-            # Verify password
+            #Verify password
             if bcrypt.checkpw(account_password.encode('utf-8'), stored_password):
-                print("DEBUG: Password verified successfully.")  # Debug log
+                print("DEBUG: Password verified successfully.")  #Debug log
                 return JsonResponse({'success': True, 'message': 'Password verified.'})
             else:
-                print("ERROR: Incorrect password.")  # Debug log
+                print("ERROR: Incorrect password.")  #Debug log
                 return JsonResponse({'success': False, 'error': 'Incorrect password.'}, status=401)
 
         except Exception as e:
-            print(f"ERROR: {str(e)}")  # Debug log
+            print(f"ERROR: {str(e)}")  #Debug log
             return JsonResponse({'success': False, 'error': 'An error occurred.', 'details': str(e)}, status=500)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
@@ -551,29 +551,29 @@ def edit_group(request, group_id):
     username = request.session['username']
     users_collection = get_users_collection()
 
-    # Fetch user and group data
+    #Fetch user and group data
     user = users_collection.find_one({'username': username})
     if not user:
-        return redirect('dashboard')  # User not found
+        return redirect('dashboard')  #User not found
 
     group = next((group for group in user.get('groups', []) if group['group_id'] == group_id), None)
     if not group:
-        return redirect('dashboard')  # Group not found, redirect to dashboard
+        return redirect('dashboard')  #Group not found, redirect to dashboard
 
-    # Get password IDs from the group (these are UUID strings, not ObjectIds)
+    #Get password IDs from the group (these are UUID strings, not ObjectIds)
     group_password_ids = group.get('passwords', [])
     print("Group password IDs:", group_password_ids)
 
-    # Fetch full password details from the passwords collection
+    #Fetch full password details from the passwords collection
     passwords_collection = get_passwords_collection()
     group_password_data = []
 
-    # Use UUIDs as strings in the query
+    #Use UUIDs as strings in the query
     for password_id in group_password_ids:
-        password = passwords_collection.find_one({'_id': password_id})  # Use the UUID as a string in the query
+        password = passwords_collection.find_one({'_id': password_id})  #Use the UUID as a string in the query
         if password:
             group_password_data.append({
-                'password_id': str(password['_id']),  # Store password_id as string for easy reference
+                'password_id': str(password['_id']),  #Store password_id as string for easy reference
                 'service_name': password.get('service_name'),
                 'username_name': password.get('username_name'), 
                 'password': password.get('password')
@@ -581,7 +581,7 @@ def edit_group(request, group_id):
 
     print("Matched passwords in group:", group_password_data)
 
-    # Fetch all user's passwords to display for adding to the group
+    #Fetch all user's passwords to display for adding to the group
     user_passwords = [
         {**password, 'id': str(password['_id'])} for password in passwords_collection.find({'username': username})
     ]
@@ -594,24 +594,24 @@ def edit_group(request, group_id):
         print("Remove password IDs:", remove_password_ids)
         print("Add password IDs:", add_password_ids)
 
-        # Ensure only the selected passwords are removed from the group
+        #Ensure only the selected passwords are removed from the group
         updated_group_password_ids = [
             pwd_id for pwd_id in group_password_ids if pwd_id not in remove_password_ids
         ]
 
         print("Updated group passwords after removal:", updated_group_password_ids)
 
-        # Add new selected passwords to the group
+        #Add new selected passwords to the group
         for password_id in add_password_ids:
             if password_id not in updated_group_password_ids:
                 updated_group_password_ids.append(password_id)
 
         print("Updated group passwords after adding:", updated_group_password_ids)
 
-        # Update group in the database with the updated password IDs (not full details)
+        #Update group in the database with the updated password IDs (not full details)
         users_collection.update_one(
             {'username': username, 'groups.group_id': group_id},
-            {'$set': {'groups.$.passwords': updated_group_password_ids}}  # Only update password IDs
+            {'$set': {'groups.$.passwords': updated_group_password_ids}}  #Only update password IDs
         )
 
         print("Changes saved successfully")
@@ -619,7 +619,7 @@ def edit_group(request, group_id):
 
     return render(request, 'edit_group.html', {
         'group': group,
-        'group_passwords': group_password_data,  # Render the full password details
+        'group_passwords': group_password_data,  #Render the full password details
         'user_passwords': user_passwords,
         'group_password_ids': group_password_ids,
         'group_id': group_id
@@ -632,36 +632,36 @@ def edit_group(request, group_id):
 def decrypt_password(request):
     if request.method == "POST":
         try:
-            # Parse JSON data
+            #- Parse JSON data
             data = json.loads(request.body)
             encrypted_password = data.get("encrypted_password")
             account_password = data.get("account_password")
 
-            # Validate inputs
+            #- Validate inputs
             if not encrypted_password:
                 return JsonResponse({"success": False, "error": "Missing encrypted password"}, status=400)
             if not account_password:
                 return JsonResponse({"success": False, "error": "Missing account password"}, status=400)
 
-            # Get username from session
+            #Get username from session
             username = request.session.get('username')
             if not username:
                 return JsonResponse({"success": False, "error": "User not logged in"}, status=401)
 
-            # Create vault user instance
+            #Create vault user instance
             vault_user = VaultUser()
             
-            # Verify the account password first
+            #Verify the account password first
             user = vault_user.get_user_by_username(username)
             if not user:
                 return JsonResponse({"success": False, "error": "User not found"}, status=404)
                 
-            # Optional: Verify master password is correct before attempting decryption
+          
             stored_password = user.get('password')
             if not bcrypt.checkpw(account_password.encode('utf-8'), stored_password):
                 return JsonResponse({"success": False, "error": "Incorrect account password"}, status=401)
             
-            # Attempt to decrypt
+            #Attempt to decrypt
             try:
                 decrypted_password = vault_user.decrypt_password(encrypted_password, account_password)
                 return JsonResponse({"success": True, "decrypted_password": decrypted_password})
@@ -684,7 +684,7 @@ def decrypt_password(request):
 
 
 def verify_2fa(request):
-    # Ensure user is awaiting 2FA verification
+    #Ensure user is awaiting 2FA verification
     if 'awaiting_2fa' not in request.session:
         return redirect('login')
     
@@ -699,12 +699,12 @@ def verify_2fa(request):
             result = vault_user.verify_2fa_code(username, code)
             
             if result['success']:
-                # 2FA verification successful, complete login
+                #2FA verification successful, complete login
                 request.session.pop('awaiting_2fa', None)
                 request.session['username'] = username
                 return redirect('dashboard')
             else:
-                # Invalid or expired code
+                #Invalid or expired code
                 form.add_error('code', result['error'])
     else:
         form = TwoFactorForm()
@@ -731,12 +731,12 @@ def resend_2fa_code(request):
 
 def cancel_2fa(request):
     """Cancel 2FA verification and return to login page"""
-    # Clear the 2FA session variable
+    #Clear the 2FA session variable
     if 'awaiting_2fa' in request.session:
         del request.session['awaiting_2fa']
-        request.session.modified = True  # Ensure the session is saved
+        request.session.modified = True  #Ensure the session is saved
     
-    # Force a session save to ensure changes are committed
+    #Force a session save to ensure changes are committed
     request.session.save()
     
     return redirect('login')

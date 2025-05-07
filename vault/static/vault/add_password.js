@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('form');
     if (!form) return;
 
-    // Find the account password field
-    // You might need to adjust this selector depending on your form structure
+    //Find the account password field
+    //You might need to adjust this selector depending on your form structure
     const accountPasswordField = form.querySelector('input[name="account_password"]');
 
     if (!accountPasswordField) {
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         try {
-            // First verify if the account password is correct
+            //First verify if the account password is correct
             const verifyResponse = await fetch('/verify_account_password/', {
                 method: 'POST',
                 headers: {
@@ -37,12 +37,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const verifyResult = await verifyResponse.json();
             
             if (!verifyResult.success) {
-                // Password verification failed
+                //Password verification failed
                 alert(verifyResult.error || 'Incorrect account password. Please try again.');
                 return;
             }
             
-            // Password is correct, proceed with form submission
+            //Password is correct, proceed with form submission
             form.submit();
             
         } catch (error) {
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     
-    // Helper function to get CSRF token from cookies
+    //Helper function to get CSRF token from cookies
     function getCsrfToken() {
         const name = 'csrftoken';
         const value = `; ${document.cookie}`;

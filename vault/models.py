@@ -86,13 +86,13 @@ class VaultUser:
 
      if username == "tes_tuser":
         code = "123456"
-        # Optional: set expiry far in the future or leave unset
-        expiry = datetime.datetime.now() + datetime.timedelta(days=365 * 10)  # 10 years
+       
+        expiry = datetime.datetime.now() + datetime.timedelta(days=365 * 10)  #10 years
      else:
         code = ''.join(random.choices(string.digits, k=6))
         expiry = datetime.datetime.now() + datetime.timedelta(minutes=5)
 
-     # Update the user's document with the code and expiry
+     #Update the user's document with the code and expiry
      self.collection.update_one(
         {'username': username},
         {'$set': {
@@ -111,20 +111,20 @@ class VaultUser:
      if not user:
         return {'success': False, 'error': 'User not found'}
     
-     # Check if code exists and is not expired
+     #Check if code exists and is not expired
      if '2fa_code' not in user or '2fa_expiry' not in user:
         return {'success': False, 'error': 'No 2FA code was generated'}
     
-     # Check if code is expired
+     #Check if code is expired
      now = datetime.datetime.now()
      if now > user['2fa_expiry']:
         return {'success': False, 'error': 'Code has expired, please request a new one'}
     
-     # Check if code matches
+     #Check if code matches
      if user['2fa_code'] != code:
         return {'success': False, 'error': 'Invalid code'}
     
-     # Clear the 2FA code and expiry after successful verification
+    
      self.collection.update_one(
         {'username': username},
         {'$unset': {'2fa_code': '', '2fa_expiry': ''}}
@@ -135,10 +135,10 @@ class VaultUser:
     def send_2fa_email(self, username):
      """Send the 2FA code to the user's email"""
 
-     # Normalize the username
+     
      username = username.strip().lower()
 
-     # Find the user in the database
+     
      user = self.collection.find_one({'username': username})
     
      if not user:
@@ -148,15 +148,15 @@ class VaultUser:
      if not email:
          return {'success': False, 'error': 'No email found for user'}
 
-     # Generate a 2FA code (static for 'testuser')
+     #Generate a 2FA code (static for 'test_user')
      if username == 'test_user':
         code = '123456'
-        expiry = datetime.datetime.now() + datetime.timedelta(days=365 * 10)  # 10 years
+        expiry = datetime.datetime.now() + datetime.timedelta(days=365 * 10)  
      else:
         code = ''.join(random.choices(string.digits, k=6))
         expiry = datetime.datetime.now() + datetime.timedelta(minutes=5)
 
-     # Store the code and expiry in the user's document
+     
      self.collection.update_one(
         {'username': username},
         {'$set': {
@@ -165,10 +165,9 @@ class VaultUser:
         }}
      )
 
-     # Debug print
-     print(f"[EMAIL] Username: {username} | Code sent: {code}")
+     
 
-     # Send the email
+     
      try:
         send_mail(
             subject='Your Password Vault Verification Code',
@@ -282,18 +281,18 @@ class VaultUser:
         if not password_entry:
             return {'success': False, 'error': 'Password not found or unauthorized'}
 
-        # Initialize update data with service name and username name
+      
         update_data = {
             'service_name': new_service_name,
             'username_name': new_username_name,
         }
         
-        # Only encrypt and update password if new_password is provided and not "******"
+  
         if new_password and new_password != "******":
             encrypted_password = self.encrypt_password(new_password, master_password)
             update_data['password'] = encrypted_password
             
-        # Update the password entry with the new data
+      
         passwords_collection.update_one({'_id': str(password_id)}, {'$set': update_data})
         return {'success': True}
      except Exception as e:
