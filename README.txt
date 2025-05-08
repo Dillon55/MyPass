@@ -17,8 +17,11 @@ MONGO_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/${MONGO_DB}?
 DJANGO_SETTINGS_MODULE=password_manager.settings
 
 
-2)
+2) ensure that docker is open and running on your pc for these commands to work
+type these commands into the terminal
+- cd mypass
 - docker-compose up -d mongo
+- docker-compose up -d web
 - docker-compose exec web python manage.py migrate
 - docker exec -it mypass-mongo-1 mongosh -u admin -p password --authenticationDatabase admin
 - use admin
