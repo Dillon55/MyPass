@@ -202,7 +202,7 @@ logger = logging.getLogger(__name__)
 def edit_password(request, password_id):
     if 'username' not in request.session:
         return redirect('login')
-        
+
     username = request.session.get('username')
     passwords_collection = get_passwords_collection()
     original_password_entry = passwords_collection.find_one({'_id': str(password_id)})
@@ -211,7 +211,6 @@ def edit_password(request, password_id):
         messages.error(request, "Password not found or you don't have permission to edit it")
         return redirect('dashboard')
 
-    #Check if this is an AJAX request
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if request.method == 'POST':
@@ -220,84 +219,55 @@ def edit_password(request, password_id):
         new_password = request.POST.get('password')
         account_password = request.POST.get('account_password')
 
-        #If changing the password (not just service name or username), require account password
         password_change = new_password and new_password != "******"
-        
-        if password_change and not account_password:
-            if is_ajax:
-                return JsonResponse({'success': False, 'error': 'Account password required'})
-            else:
-                return render(request, 'enter_password.html', {
-                    'password_id': password_id,
-                    'service_name': new_service_name,
-                    'username_name': new_username_name,
-                    'new_password': new_password
-                })
 
         vault_user = VaultUser()
-        
-        #If only updating service name or username (not password), skip password verification
-        if not password_change:
-            update_data = {
-                'service_name': new_service_name,
-                'username_name': new_username_name
-            }
-            result = passwords_collection.update_one(
-                {'_id': str(password_id)}, 
-                {'$set': update_data}
-            )
-            
-            if is_ajax:
-                #For AJAX requests, return JSON
-                if result.modified_count > 0:
-                    return JsonResponse({'success': True, 'message': 'Password details updated successfully.'})
-                else:
-                    return JsonResponse({'success': True, 'message': 'No changes made.'})
-            else:
-                #For regular form submissions, redirect to dashboard
-                messages.success(request, "Password details updated successfully.")
-                return redirect('dashboard')
-        else:
-            #Password is changing, so verify account password
-            user = vault_user.get_user_by_username(username)
-            if not user:
-                if is_ajax:
-                    return JsonResponse({'success': False, 'error': 'User not found.'})
-                else:
-                    messages.error(request, "User not found.")
-                    return redirect('dashboard')
+        user = vault_user.get_user_by_username(username)
 
-            stored_password = user.get('password')
-            if not bcrypt.checkpw(account_password.encode('utf-8'), stored_password):
+        if password_change:
+            if not account_password:
+                error_msg = 'Account password required'
                 if is_ajax:
-                    return JsonResponse({'success': False, 'error': 'Incorrect password.'})
+                    return JsonResponse({'success': False, 'error': error_msg})
                 else:
-                    messages.error(request, "Incorrect password.")
-                    return redirect('dashboard')
+                    return render(request, 'enter_password.html', {
+                        'password_id': password_id,
+                        'service_name': new_service_name,
+                        'username_name': new_username_name,
+                        'new_password': new_password
+                    })
 
-            #Update with the new password
-            result = vault_user.edit_password(
-                username=username,
-                password_id=password_id,
-                new_service_name=new_service_name,
-                new_username_name=new_username_name,
-                new_password=new_password,
-                master_password=account_password
-            )
-            
-            if result['success']:
-                if is_ajax:
-                    return JsonResponse({'success': True, 'message': 'Password updated successfully.'})
-                else:
-                    messages.success(request, "Password updated successfully.")
-                    return redirect('dashboard')
-            else:
-                error_msg = result.get('error', 'Failed to update password.')
+            if not user or not bcrypt.checkpw(account_password.encode('utf-8'), user.get('password')):
+                error_msg = 'Incorrect password.'
                 if is_ajax:
                     return JsonResponse({'success': False, 'error': error_msg})
                 else:
                     messages.error(request, error_msg)
                     return redirect('dashboard')
+
+        # Call the model method to update password details
+        result = vault_user.edit_password(
+            username=username,
+            password_id=password_id,
+            new_service_name=new_service_name,
+            new_username_name=new_username_name,
+            new_password=new_password,
+            master_password=account_password if password_change else None
+        )
+
+        if result.get('success'):
+            if is_ajax:
+                return JsonResponse({'success': True, 'message': result.get('message', 'Password updated successfully.')})
+            else:
+                messages.success(request, result.get('message', 'Password updated successfully.'))
+                return redirect('dashboard')
+        else:
+            error_msg = result.get('error', 'Failed to update password.')
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': error_msg})
+            else:
+                messages.error(request, error_msg)
+                return redirect('dashboard')
 
     return render(request, 'edit_password.html', {'password': original_password_entry})
 
@@ -551,80 +521,63 @@ def edit_group(request, group_id):
     username = request.session['username']
     users_collection = get_users_collection()
 
-    #Fetch user and group data
+    # Fetch user and group data
     user = users_collection.find_one({'username': username})
     if not user:
-        return redirect('dashboard')  #User not found
+        return redirect('dashboard')  # User not found
 
     group = next((group for group in user.get('groups', []) if group['group_id'] == group_id), None)
     if not group:
-        return redirect('dashboard')  #Group not found, redirect to dashboard
+        return redirect('dashboard')  # Group not found
 
-    #Get password IDs from the group (these are UUID strings, not ObjectIds)
     group_password_ids = group.get('passwords', [])
-    print("Group password IDs:", group_password_ids)
 
-    #Fetch full password details from the passwords collection
     passwords_collection = get_passwords_collection()
     group_password_data = []
 
-    #Use UUIDs as strings in the query
     for password_id in group_password_ids:
-        password = passwords_collection.find_one({'_id': password_id})  #Use the UUID as a string in the query
+        password = passwords_collection.find_one({'_id': password_id})
         if password:
             group_password_data.append({
-                'password_id': str(password['_id']),  #Store password_id as string for easy reference
+                'password_id': str(password['_id']),
                 'service_name': password.get('service_name'),
-                'username_name': password.get('username_name'), 
+                'username_name': password.get('username_name'),
                 'password': password.get('password')
             })
 
-    print("Matched passwords in group:", group_password_data)
-
-    #Fetch all user's passwords to display for adding to the group
     user_passwords = [
         {**password, 'id': str(password['_id'])} for password in passwords_collection.find({'username': username})
     ]
 
     if request.method == 'POST':
-        print("POST request received")
         remove_password_ids = request.POST.getlist('remove_passwords')
         add_password_ids = request.POST.getlist('add_passwords')
 
-        print("Remove password IDs:", remove_password_ids)
-        print("Add password IDs:", add_password_ids)
+        # Remove selected passwords
+        updated_group_password_ids = [pid for pid in group_password_ids if pid not in remove_password_ids]
 
-        #Ensure only the selected passwords are removed from the group
-        updated_group_password_ids = [
-            pwd_id for pwd_id in group_password_ids if pwd_id not in remove_password_ids
-        ]
+        # Add new passwords if not already present
+        for pid in add_password_ids:
+            if pid not in updated_group_password_ids:
+                updated_group_password_ids.append(pid)
 
-        print("Updated group passwords after removal:", updated_group_password_ids)
+        # Use the model method to update the group passwords
+        result = VaultUser.update_group_passwords(username, group_id, updated_group_password_ids)
 
-        #Add new selected passwords to the group
-        for password_id in add_password_ids:
-            if password_id not in updated_group_password_ids:
-                updated_group_password_ids.append(password_id)
+        if result.get('success'):
+            messages.success(request, "Group passwords updated successfully.")
+        else:
+            messages.error(request, result.get('error', 'Failed to update group passwords.'))
 
-        print("Updated group passwords after adding:", updated_group_password_ids)
-
-        #Update group in the database with the updated password IDs (not full details)
-        users_collection.update_one(
-            {'username': username, 'groups.group_id': group_id},
-            {'$set': {'groups.$.passwords': updated_group_password_ids}}  #Only update password IDs
-        )
-
-        print("Changes saved successfully")
         return redirect('dashboard')
 
     return render(request, 'edit_group.html', {
         'group': group,
-        'group_passwords': group_password_data,  #Render the full password details
+        'group_passwords': group_password_data,
         'user_passwords': user_passwords,
         'group_password_ids': group_password_ids,
         'group_id': group_id
     })
-
 
 
 

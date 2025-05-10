@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 import base64
 import traceback
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +23,12 @@ class VaultUser:
         self.collection = get_users_collection()
         self.collection.create_index('username', unique=True)
         self.collection.create_index('email', unique=True)
-
-    def generate_key(self, master_password):
-        salt = b'static_salt_value'
+        
+        
+    
+      #This method generates a encryption key and using the salt and the master password
+    def generate_key(self, master_password, salt):
+       #Transform the master password into an encryption key
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -32,33 +36,51 @@ class VaultUser:
             iterations=100000,
             backend=default_backend()
         )
+        
         key = base64.urlsafe_b64encode(kdf.derive(master_password.encode('utf-8')))
         return key
-
+        #This method encrypts a password using a random salt and the master password
     def encrypt_password(self, password, master_password):
         try:
-            key = self.generate_key(master_password)
+            #Generate a random salt
+            salt = os.urandom(16)
+            #Generate key with the random salt
+            key = self.generate_key(master_password, salt)
+            #Encrypt the password
             f = Fernet(key)
             encrypted = f.encrypt(password.encode('utf-8'))
-            return encrypted.decode('utf-8')
+            #Seperate the salt from encrypted password : 
+            result = base64.b64encode(salt).decode('utf-8') + ":" + encrypted.decode('utf-8')
+            return result
         except Exception as e:
             logger.error(f"Encryption error: {str(e)}")
             logger.error(f"Traceback: {traceback.format_exc()}")
             raise Exception(f"Failed to encrypt password: {str(e)}")
-
+        #decrypt a password using the master password and salt
     def decrypt_password(self, encrypted_password, master_password):
+       
         try:
-            key = self.generate_key(master_password)
+            #Convert to string if bytes
+            if isinstance(encrypted_password, bytes):
+                encrypted_password = encrypted_password.decode('utf-8')
+            
+            #Split the salt and the encrypted data
+            salt_b64, encrypted_data = encrypted_password.split(":", 1)
+            salt = base64.b64decode(salt_b64)
+            
+            #Generate key with the stored salt
+            key = self.generate_key(master_password, salt)
+            
+            #Decrypt with the derived key
             f = Fernet(key)
-            encrypted_bytes = encrypted_password.encode('utf-8') if isinstance(encrypted_password, str) else encrypted_password
-            decrypted = f.decrypt(encrypted_bytes)
+            decrypted = f.decrypt(encrypted_data.encode('utf-8'))
+                
             return decrypted.decode('utf-8')
         except Exception as e:
             logger.error(f"Decryption error: {str(e)}")
-            import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
             raise Exception(f"Failed to decrypt password: {str(e)}")
-
+        #create user method using bcrypt to store hash password
     def create_user(self, username, email, password):
         try:
             username = username.lower()
@@ -82,9 +104,9 @@ class VaultUser:
             return {'success': False, 'error': 'An error occurred while creating the user'}
 
     def generate_2fa_code(self, username):
-     """Generate a 2FA code. Use a static code for testuser, random for others."""
+     #Generate a 2FA code a static 2FA code is generated for tes_user for testing perpose
 
-     if username == "tes_tuser":
+     if username == "test_user":
         code = "123456"
        
         expiry = datetime.datetime.now() + datetime.timedelta(days=365 * 10)  #10 years
@@ -105,7 +127,7 @@ class VaultUser:
 
 
     def verify_2fa_code(self, username, code):
-     """Verify the 2FA code entered by the user"""
+     #Verify the 2FA code entered by the user
      user = self.collection.find_one({'username': username})
     
      if not user:
@@ -133,7 +155,7 @@ class VaultUser:
      return {'success': True}
 
     def send_2fa_email(self, username):
-     """Send the 2FA code to the user's email"""
+     #Send the 2FA code to the user's email
 
      
      username = username.strip().lower()
@@ -274,32 +296,41 @@ class VaultUser:
             traceback.print_exc()
             return {'success': False, 'error': 'An error occurred while deleting the password'}
 
-    def edit_password(self, username, password_id, new_service_name, new_username_name, new_password, master_password):
+    def edit_password(self, username, password_id, new_service_name, new_username_name, new_password, master_password=None):
      try:
         passwords_collection = get_passwords_collection()
         password_entry = passwords_collection.find_one({'_id': str(password_id), 'username': username})
         if not password_entry:
             return {'success': False, 'error': 'Password not found or unauthorized'}
 
-      
         update_data = {
             'service_name': new_service_name,
             'username_name': new_username_name,
         }
-        
-  
+
+        # Check if password change is requested and valid
         if new_password and new_password != "******":
+            if not master_password:
+                return {'success': False, 'error': 'Master password required to change password'}
+
+            # Encrypt new password with master password
             encrypted_password = self.encrypt_password(new_password, master_password)
             update_data['password'] = encrypted_password
-            
-      
-        passwords_collection.update_one({'_id': str(password_id)}, {'$set': update_data})
-        return {'success': True}
+
+        # Perform update
+        result = passwords_collection.update_one({'_id': str(password_id)}, {'$set': update_data})
+
+        if result.modified_count == 0:
+            return {'success': True, 'message': 'No changes made.'}
+
+        return {'success': True, 'message': 'Password updated successfully.'}
+
      except Exception as e:
         logger.error(f"Error editing password: {e}")
         import traceback
         traceback.print_exc()
         return {'success': False, 'error': 'An error occurred while updating the password'}
+
 
     @staticmethod
     def get_group_by_id(user, group_id):
@@ -330,8 +361,17 @@ class VaultUser:
 
     @staticmethod
     def update_group_passwords(username, group_id, updated_group_password_ids):
+     try:
         users_collection = get_users_collection()
-        users_collection.update_one(
+        result = users_collection.update_one(
             {'username': username, 'groups.group_id': group_id},
             {'$set': {'groups.$.passwords': updated_group_password_ids}}
         )
+        if result.modified_count == 0:
+            return {'success': False, 'error': 'No changes made or group not found.'}
+        return {'success': True}
+     except Exception as e:
+        logger.error(f"Error updating group passwords: {e}")
+        import traceback
+        traceback.print_exc()
+        return {'success': False, 'error': 'An error occurred while updating the group passwords.'}

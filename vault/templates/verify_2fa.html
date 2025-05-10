@@ -10,16 +10,7 @@
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">Verification Required</h4>
                 </div>
-                <div class="card-body">
-                    {% if messages %}
-                    <div class="messages mb-4">
-                        {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">
-                            {{ message }}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
+                
                     
                     <p class="mb-4">A verification code has been sent to your email address. Please check your inbox and enter the 6-digit code below.</p>
                     

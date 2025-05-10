@@ -22,7 +22,6 @@ type these commands into the terminal
 - cd mypass
 - docker-compose up -d mongo
 - docker-compose up -d web
-- docker-compose exec web python manage.py migrate
 - docker exec -it mypass-mongo-1 mongosh -u admin -p password --authenticationDatabase admin
 - use admin
 

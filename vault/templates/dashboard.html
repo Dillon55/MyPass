@@ -79,12 +79,23 @@
                 <div class="group-box">
                     <h3>{{ group.name }}</h3>
                     <ul>
-                        {% for password in group.passwords %}
-                        
-                            <li>
-                                {{ password.service_name }} - {{password.username_name}}
-                                <span class="hidden-password" id="group-{{ group.group_id }}-password-{{ password.id }}">******</span>
-                                <button onclick="showPassword('{{ password.password }}', 'group-{{ group.group_id }}-password-{{ password.id }}')">Show</button>
+                       {% for password in group.passwords %}
+                            <li class="group-password-item">
+                                <div class="group-password-info">
+                                    <div class="group-service-name">
+                                        <span class="info-label">Service name</span>
+                                        {{ password.service_name }}
+                                    </div>
+                                    <div class="group-username">
+                                        <span class="info-label">Username/Email</span>
+                                        {{ password.username_name }}
+                                    </div>
+                                    <div class="group-password">
+                                        <span class="info-label">Password</span>
+                                        <span class="hidden-password" id="group-{{ group.group_id }}-password-{{ password.id }}">******</span>
+                                        <button onclick="showPassword('{{ password.password }}', 'group-{{ group.group_id }}-password-{{ password.id }}')">Show</button>
+                                    </div>
+                                </div>
                             </li>
                         {% endfor %}
                     </ul>

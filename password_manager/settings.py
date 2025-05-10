@@ -82,8 +82,8 @@ TEMPLATES = [
 
 
 
-  
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+  # Settings for 2FA emails
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' #Use 'django.core.mail.backends.console.EmailBackend' for testing use 
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'dillonoconnor55@gmail.com'  
