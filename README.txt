@@ -1,7 +1,11 @@
 Docker is required to run this application
 if you do not have docker it can be installed here: https://www.docker.com/get-started/
+*****NOTE*****
+2FA will not work if you want it to work make a application password on google for now change the 2fa settings in settings.py to have 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' and remove the rest of the gmail settings. the 2fa codes will be sent
+to the console this way.
 
-
+********************************************
 1) -make a .env file in the project directory
 
    - fill the file like this for example 
